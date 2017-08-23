@@ -1,0 +1,261 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style>
+        body{
+            margin:0;
+            padding:0;
+        }
+        .con{
+            background: #fff;
+            width:729px;
+            margin:0 auto;
+            padding:10px;
+        }
+        .box1{
+            border:1px solid #c9d5e5;
+            padding:25px;
+            background: #f3f8fc;
+            overflow: auto;
+
+        }
+        .box1 textarea{
+            width:670px;
+            height:50px;
+        }
+        .box1 button{
+             float: right;
+            width:100px;
+            height:30px;
+            margin-top:18px;
+            border:1px solid #bcc2c2;
+            border-radius: 7%;;
+            background: url("images/1.png");
+        }
+        .box2{
+            clear: both;
+            border:1px solid #c9d5e5;
+            margin-top:10px;
+        }
+        .box2 ul{
+            list-style: none;
+            margin:0;
+            padding:0;
+        }
+        .box2Div1 ul li{
+            overflow: auto;
+            border-bottom:1px solid #ececec;
+        }
+        .box2Word{
+            margin: 15px 15px 0 15px;
+        }
+        .box2Operation{
+            margin: 0 15px;
+            font:16px/30px '微软雅黑';
+        }
+        .opeNum{
+            float: left;
+        }
+        .opeOpe{
+            float: right;
+        }
+        .box2Div2{
+            background: #f3f8fc;
+            overflow: hidden;
+            padding:10px 0 10px 0;
+        }
+        .box2Div2 ul{
+            float: right;
+        }
+        .box2Div2 li{
+            float: left;
+            border:1px solid #d9dade;
+            padding:5px 10px;
+            margin-right:5px;
+            cursor: pointer;
+        }
+        .box2Div2 select{
+        	margin-left: 10px;
+        	width: 50px;
+        }
+        .active{
+            background: #d9dade;
+        }
+        .opeOpe a{
+            color: #000;
+            text-decoration: none;
+            margin-right:10px;
+        }
+    </style>
+</head>
+<body>
+<div id="box"></div>
+<div class="con">
+    <div class="box1">
+        <textarea></textarea>
+        <button onclick="addFun()">提交评论</button>
+    </div>
+    <div class="box2">
+        <div class="box2Div1">
+            <ul id="ul1">
+                <!--<li>-->
+                    <!--<div class="box2Word">000</div>-->
+                    <!--<div class="box2Operation">-->
+                        <!--<div class="opeNum">编号</div>-->
+                        <!--<div class="opeOpe">-->
+                            <!--<a href="#">赞<span></span></a>-->
+                            <!--<a href="#">踩<span></span></a>-->
+                            <!--<a href="#">删除</a>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                <!--</li>-->
+            </ul>
+        </div>
+        <div class="box2Div2">
+            <ul>
+                <!--<li class="active">1</li>
+                <li>2</li>-->
+            </ul>
+            <select style="display: none;">
+            	<option>5</option>
+            	<option>10</option>
+            	<option>15</option>
+            </select>
+        </div>
+    </div>
+</div>
+<script src="js/ajax.js"></script>
+<script> 
+	//按几条来进行分页查看
+	var sel=document.querySelector('.box2Div2 select');
+	var selectVal=5;//默认5条数据进行展现
+	sel.onchange=function(){
+		selectVal=this.value;
+		thisIndex=0  //每次点击下拉框后，当前页就显示第一页
+		list(thisIndex);
+		pag();  
+	}
+ 
+	//分页	
+	pag(); 
+	function pag(){   
+		ajaxFun('http://localhost:8080/pagingOne',{thisPag:thisIndex,val:selectVal},function(data){
+			var lis='';
+			for(var i=1;i<data+1;i++){
+				lis+='<li>'+i+'</li>';  
+			}			
+			var ul=document.querySelector('.box2Div2 ul');
+			ul.innerHTML=lis;
+			addPagLi();
+			
+		});
+	}	
+	var thisIndex=0;
+	//添加分页中的li	
+	function addPagLi(){ 
+		var li=document.querySelectorAll('.box2Div2 ul li');
+		if(li.length==0){return};//如果没有数据 就不再往下走
+		li[thisIndex].className='active';
+		for(var i=0;i<li.length;i++){
+			li[i].onclick=function(){						
+				for(var i=0;i<li.length;i++){
+					li[i].className='';	
+				}
+				this.className='active';
+				list(this.innerHTML-1);//调用显示列表函数，将当前点击的页面传入给该函数，(-1是数组中的下标是从0开始算的，比如：点击第一页那就应该显示的从0~5的5条数据，所以当前页数就-1)
+				thisIndex=this.innerHTML-1; 
+			}
+		} 
+	}
+	
+	//显示列表	 
+    list(thisIndex);//默认向后台传入0，显示0~5的数据    
+    function list(pagNum){    	 
+        document.querySelector('#ul1').innerHTML ='';
+        ajaxFun('http://localhost:8080/delete',null,function(data){
+        	if(data!=0){ 
+        		sel.style.display='block';
+        	}
+        })
+        ajaxFun('http://localhost:8080/api/indexOne',{thisPag:pagNum,val:selectVal},function(data){
+            for(var i=0;i<data.length;i++) {
+                var lis = '<div class="box2Word">' + data[i].con + '</div>' +
+                        '<div class="box2Operation">' +
+                        '<div class="opeNum">编号</div>' +
+                        '<div class="opeOpe">' +
+                        '<a href="#" onclick="helpFun(this,'+data[i].id+')">赞<span>' + data[i].help + '</span></a>' +
+                        '<a href="#" onclick="stepFun(this,'+data[i].id+')">踩<span>' + data[i].step + '</span></a>' +
+                        '<a href="#" onclick="deleteFun(this,' +data[i].id + ')">删除</a>' +
+                        '</div>' +
+                        '</div>';
+                var li = document.createElement('li');
+                li.innerHTML =lis;
+                li.id = i;
+                document.querySelector('#ul1').appendChild(li); 
+            }
+            
+        });
+    };
+
+    //点赞
+    function helpFun(thisA,id){
+        ajaxFun('http://localhost:8080/help',{winThisId:id},function(){
+            thisA.firstElementChild.innerHTML=parseInt(thisA.firstElementChild.innerHTML)+1;
+        });
+    };
+    //点踩
+    function stepFun(thisA,id){
+        ajaxFun('http://localhost:8080/step',{winThisId:id},function(){
+            thisA.firstElementChild.innerHTML=parseInt(thisA.firstElementChild.innerHTML)+1;
+        });
+    };
+    //删除
+    function deleteFun(thisA,id){
+        ajaxFun('http://localhost:8080/delete',{winThisId:id},function(data){
+        	//删除的时候如果把数据删完后，那么使用多少条进行展现的下拉框就隐藏
+        	if(data==0){ 
+        		sel.style.display='none';
+        	}
+        	ajaxFun('http://localhost:8080/pagingOne',{thisPag:thisIndex,val:selectVal},function(data){
+        		 //如果当前页大于总页数，那就把总页数赋值给list函数
+        		 console.log('当前页：'+thisIndex+'总页数'+(data-1))
+        		 if(thisIndex>data-1){
+        		 	thisIndex=data-1;  
+	        	 	list(thisIndex); 
+	        	 	pag();
+	        	 	return
+	        	 }
+	        	 list(thisIndex);
+	        	 pag();	   
+       		});
+       	});
+    };
+ 
+    //添加
+    function addFun(){
+        var textarea=document.querySelector('textarea').value;
+        if(!textarea){
+            alert('请输入内容!');
+            return;
+        }
+        ajaxFun('http://localhost:8080/add',{textaCon:textarea},function(){
+            document.querySelector('textarea').value='';
+            document.querySelector('#ul1').innerHTML='';
+            list(0);
+            pag();
+        });
+    };
+    function ajaxFun(url,data,succ) {
+        ajax({
+            url: url,
+            data: data,
+            method: 'get',
+            dataType: 'json',
+            succ: succ
+        });
+    };
+</script>
+</body>
+</html>

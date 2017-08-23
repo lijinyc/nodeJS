@@ -1,0 +1,8 @@
+1、安装nodeJS
+	下载地址:https://nodejs.org/en/download/
+	
+2、在node中找到项目的目录，找到要启动的js，在前面加个node进行启动（按回车），如：node 2.js
+
+3、打开浏览器访问地址：localhost:8080,就可以进行访问页面了
+
+	
